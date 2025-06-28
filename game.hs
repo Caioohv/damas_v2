@@ -302,5 +302,27 @@ promotePiece (Occupied Red Pawn) (0, _) = Occupied Red King
 promotePiece (Occupied Black Pawn) (7, _) = Occupied Black King
 promotePiece piece _ = piece
 
+playGame :: GameMode -> GameState -> IO ()
+playGame mode gameState = do
+    putStrLn $ showBoard (board gameState)
+    putStrLn $ "Jogador atual: " ++ show (currentPlayer gameState)
+    
+    let checkedGameState = checkGameOver gameState
+    
+    if gameOver checkedGameState
+    then case winner checkedGameState of
+        Just w -> putStrLn $ "Jogo terminado! Vencedor: " ++ show w
+        Nothing -> putStrLn "Jogo terminado! Empate!"
+    else do
+        when (mode == AIVsAI) $ do
+            putStrLn "Pressione Enter para continuar..."
+            _ <- getLine
+            return ()
+            
+        newGameState <- if mode == HumanVsAI && currentPlayer checkedGameState == Red
+                       then humanMove checkedGameState
+                       else aiMove gameState
+        playGame mode newGameState
+
 main :: IO ()
 main = putStrLn "Checkers game - starting..."
