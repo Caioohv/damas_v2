@@ -325,4 +325,37 @@ playGame mode gameState = do
         playGame mode newGameState
 
 main :: IO ()
-main = putStrLn "Checkers game - starting..."
+main = do
+    putStrLn "=== JOGO DE DAMAS EM HASKELL ==="
+    putStrLn "1. Humano vs IA"
+    putStrLn "2. IA vs IA"
+    putStr "Escolha o modo de jogo (1 ou 2): "
+    hFlush stdout
+    modeInput <- getLine
+    
+    mode <- case modeInput of
+        "1" -> return HumanVsAI
+        "2" -> return AIVsAI
+        _ -> do
+            putStrLn "Opção inválida, usando Humano vs IA"
+            return HumanVsAI
+    
+    putStrLn "Quem deve começar?"
+    putStrLn "1. Vermelho (r/R)"
+    putStrLn "2. Preto (b/B)"
+    putStr "Escolha (1 ou 2): "
+    hFlush stdout
+    startInput <- getLine
+    
+    startPlayer <- case startInput of
+        "1" -> return Red
+        "2" -> return Black
+        _ -> do
+            putStrLn "Opção inválida, Vermelho começa"
+            return Red
+    
+    putStrLn "\nIniciando jogo..."
+    putStrLn "Legenda: r=peão vermelho, R=dama vermelha, b=peão preto, B=dama preta"
+    putStrLn ""
+    
+    playGame mode (initialGameState startPlayer)
