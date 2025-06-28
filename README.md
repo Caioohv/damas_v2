@@ -2,15 +2,17 @@
 Just a checkers game, but in haskell :)
 
 ### Instructions:
+Before all, you need to clone this repo, or download its content.
 
-If using bash, just do:
+then, if using bash, just do:
 ```sh
 ./compile
 ```
-and it will run :)
 
-if using powershell/cmd/...
+or, if using powershell/cmd/...
 ```sh
 ghc -o checkers.exe game.hs
 ./checkers.exe
 ```
+
+and it will run. Have fun :)
