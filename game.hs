@@ -1,6 +1,7 @@
 module Main where
 
 import Data.List (intercalate)
+import Data.Maybe (isJust, fromJust, catMaybes)
 
 data Piece = Pawn | King deriving (Eq, Show)
 data Player = Red | Black deriving (Eq, Show)
@@ -228,6 +229,26 @@ getBestMove board player =
                bestScore = maximum scores
                bestMoves = [move | (move, score) <- zip moves scores, score == bestScore]
            in Just (head bestMoves)
+parseMove :: String -> Maybe Move
+parseMove input =
+    case words input of
+        [from, to] -> do
+            fromPos <- parsePosition from
+            toPos <- parsePosition to
+            return (fromPos, toPos)
+        _ -> Nothing
+
+parsePosition :: String -> Maybe Position
+parsePosition [r, c] = do
+    row <- charToInt r
+    col <- charToInt c
+    if isValidPosition (row, col) then Just (row, col) else Nothing
+parsePosition _ = Nothing
+
+charToInt :: Char -> Maybe Int
+charToInt c
+    | c >= '0' && c <= '7' = Just (fromEnum c - fromEnum '0')
+    | otherwise = Nothing
 
 isValidMove :: Board -> Player -> Move -> Bool
 isValidMove board player move =
