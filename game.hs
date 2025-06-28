@@ -99,6 +99,29 @@ isSimpleMove board player ((fromR, fromC), (toR, toC)) =
                 _ -> False
         _ -> False
 
+getCaptureMove :: Board -> Player -> Position -> Position -> Maybe (Move, Position)
+getCaptureMove board player from@(fromR, fromC) to@(toR, toC) =
+    case getSquare board from of
+        Just (Occupied p piece) | p == player ->
+            let deltaR = toR - fromR
+                deltaC = toC - fromC
+                directions = case piece of
+                    Pawn -> pawnDirections player
+                    King -> kingDirections
+                midR = fromR + deltaR `div` 2
+                midC = fromC + deltaC `div` 2
+                midPos = (midR, midC)
+            in if abs deltaR == 2 && abs deltaC == 2 && 
+                  (signum deltaR, signum deltaC) `elem` map (\(dr, dc) -> (signum (2*dr), signum (2*dc))) directions
+               then case getSquare board midPos of
+                   Just (Occupied opponent _) | opponent /= player ->
+                       case getSquare board to of
+                           Just Empty -> Just ((from, to), midPos)
+                           _ -> Nothing
+                   _ -> Nothing
+               else Nothing
+        _ -> Nothing
+
 applyMove :: Board -> Move -> Board
 applyMove board ((fromR, fromC), (toR, toC)) =
     case getSquare board (fromR, fromC) of
@@ -107,6 +130,12 @@ applyMove board ((fromR, fromC), (toR, toC)) =
                 finalPiece = promotePiece piece (toR, toC)
             in setSquare newBoard (toR, toC) finalPiece
         Nothing -> board
+
+applyCapture :: Board -> Move -> Position -> Board
+applyCapture board move capturedPos =
+    let boardAfterMove = applyMove board move
+    in setSquare boardAfterMove capturedPos Empty
+
 
 promotePiece :: Square -> Position -> Square
 promotePiece (Occupied Red Pawn) (0, _) = Occupied Red King
