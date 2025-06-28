@@ -84,5 +84,34 @@ opponent :: Player -> Player
 opponent Red = Black
 opponent Black = Red
 
+isSimpleMove :: Board -> Player -> Move -> Bool
+isSimpleMove board player ((fromR, fromC), (toR, toC)) =
+    case getSquare board (fromR, fromC) of
+        Just (Occupied p piece) | p == player ->
+            case getSquare board (toR, toC) of
+                Just Empty ->
+                    let directions = case piece of
+                            Pawn -> pawnDirections player
+                            King -> kingDirections
+                        deltaR = toR - fromR
+                        deltaC = toC - fromC
+                    in (deltaR, deltaC) `elem` directions
+                _ -> False
+        _ -> False
+
+applyMove :: Board -> Move -> Board
+applyMove board ((fromR, fromC), (toR, toC)) =
+    case getSquare board (fromR, fromC) of
+        Just piece ->
+            let newBoard = setSquare board (fromR, fromC) Empty
+                finalPiece = promotePiece piece (toR, toC)
+            in setSquare newBoard (toR, toC) finalPiece
+        Nothing -> board
+
+promotePiece :: Square -> Position -> Square
+promotePiece (Occupied Red Pawn) (0, _) = Occupied Red King
+promotePiece (Occupied Black Pawn) (7, _) = Occupied Black King
+promotePiece piece _ = piece
+
 main :: IO ()
 main = putStrLn "Checkers game - starting..."
