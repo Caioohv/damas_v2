@@ -89,6 +89,16 @@ opponent :: Player -> Player
 opponent Red = Black
 opponent Black = Red
 
+debugMoves :: Board -> Player -> IO ()
+debugMoves board player = do
+    let moves = getAllMoves board player
+        pieces = getPlayerPieces board player
+    putStrLn $ "Debug - Jogador: " ++ show player
+    putStrLn $ "Peças disponíveis: " ++ show pieces
+    putStrLn $ "Movimentos disponíveis: " ++ show moves
+    putStrLn $ "Total de movimentos: " ++ show (length moves)
+
+
 isSimpleMove :: Board -> Player -> Move -> Bool
 isSimpleMove board player ((fromR, fromC), (toR, toC)) =
     case getSquare board (fromR, fromC) of
@@ -285,6 +295,8 @@ humanMove gameState = do
 
 aiMove :: GameState -> IO GameState
 aiMove gameState = do
+    debugMoves (board gameState) (currentPlayer gameState)
+    
     case getBestMove (board gameState) (currentPlayer gameState) of
         Just move -> do
             putStrLn $ "IA (" ++ show (currentPlayer gameState) ++ ") joga: " ++ showMove move
