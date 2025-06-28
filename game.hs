@@ -2,6 +2,8 @@ module Main where
 
 import Data.List (intercalate)
 import Data.Maybe (isJust, fromJust, catMaybes)
+import System.IO (hFlush, stdout)
+import Control.Monad (when)
 
 data Piece = Pawn | King deriving (Eq, Show)
 data Player = Red | Black deriving (Eq, Show)
@@ -16,6 +18,8 @@ data GameState = GameState
     , gameOver :: Bool
     , winner :: Maybe Player
     } deriving (Show)
+
+data GameMode = HumanVsAI | AIVsAI deriving (Eq, Show)
 
 initialBoard :: Board
 initialBoard = 
@@ -259,6 +263,39 @@ executeMove board player move =
     case getCaptureMove board player (fst move) (snd move) of
         Just (_, capturedPos) -> applyCapture board move capturedPos
         Nothing -> applyMove board move
+
+humanMove :: GameState -> IO GameState
+humanMove gameState = do
+    putStrLn "Digite seu movimento (ex: '52 43' para mover de (5,2) para (4,3)):"
+    putStr "> "
+    hFlush stdout
+    input <- getLine
+    case parseMove input of
+        Just move -> 
+            if isValidMove (board gameState) (currentPlayer gameState) move
+            then do
+                let newBoard = executeMove (board gameState) (currentPlayer gameState) move
+                return gameState { board = newBoard, currentPlayer = opponent (currentPlayer gameState) }
+            else do
+                putStrLn "Movimento inválido! Tente novamente."
+                humanMove gameState
+        Nothing -> do
+            putStrLn "Formato inválido! Use 'linha_origem coluna_origem linha_destino coluna_destino'"
+            humanMove gameState
+
+aiMove :: GameState -> IO GameState
+aiMove gameState = do
+    case getBestMove (board gameState) (currentPlayer gameState) of
+        Just move -> do
+            putStrLn $ "IA (" ++ show (currentPlayer gameState) ++ ") joga: " ++ showMove move
+            let newBoard = executeMove (board gameState) (currentPlayer gameState) move
+            return gameState { board = newBoard, currentPlayer = opponent (currentPlayer gameState) }
+        Nothing -> do
+            putStrLn $ "IA (" ++ show (currentPlayer gameState) ++ ") não tem movimentos válidos!"
+            return gameState { gameOver = True, winner = Just (opponent (currentPlayer gameState)) }
+
+showMove :: Move -> String
+showMove ((r1, c1), (r2, c2)) = show r1 ++ show c1 ++ " -> " ++ show r2 ++ show c2
 
 promotePiece :: Square -> Position -> Square
 promotePiece (Occupied Red Pawn) (0, _) = Occupied Red King
