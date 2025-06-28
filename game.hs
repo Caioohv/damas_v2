@@ -136,6 +136,40 @@ applyCapture board move capturedPos =
     let boardAfterMove = applyMove board move
     in setSquare boardAfterMove capturedPos Empty
 
+getAllMoves :: Board -> Player -> [Move]
+getAllMoves board player =
+    let pieces = getPlayerPieces board player
+        simpleMoves = [move | pos <- pieces, move <- getSimpleMoves board player pos]
+        captureMoves = [move | pos <- pieces, (move, _) <- getCaptureMovesFrom board player pos]
+    in if null captureMoves then simpleMoves else captureMoves
+
+getSimpleMoves :: Board -> Player -> Position -> [Move]
+getSimpleMoves board player from@(r, c) =
+    case getSquare board from of
+        Just (Occupied p piece) | p == player ->
+            let directions = case piece of
+                    Pawn -> pawnDirections player
+                    King -> kingDirections
+                candidates = [(r + dr, c + dc) | (dr, dc) <- directions]
+                validMoves = [to | to <- candidates, 
+                             isValidPosition to,
+                             getSquare board to == Just Empty]
+            in [(from, to) | to <- validMoves]
+        _ -> []
+
+getCaptureMovesFrom :: Board -> Player -> Position -> [(Move, Position)]
+getCaptureMovesFrom board player from@(r, c) =
+    case getSquare board from of
+        Just (Occupied p piece) | p == player ->
+            let directions = case piece of
+                    Pawn -> pawnDirections player
+                    King -> kingDirections
+                candidates = [(r + 2*dr, c + 2*dc) | (dr, dc) <- directions]
+                validCaptures = [result | to <- candidates,
+                               isValidPosition to,
+                               Just result <- [getCaptureMove board player from to]]
+            in validCaptures
+        _ -> []
 
 promotePiece :: Square -> Position -> Square
 promotePiece (Occupied Red Pawn) (0, _) = Occupied Red King
