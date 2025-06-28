@@ -171,6 +171,31 @@ getCaptureMovesFrom board player from@(r, c) =
             in validCaptures
         _ -> []
 
+checkGameOver :: GameState -> GameState
+checkGameOver gameState
+    | gameOver gameState = gameState
+    | otherwise =
+        let redPieces = getPlayerPieces (board gameState) Red
+            blackPieces = getPlayerPieces (board gameState) Black
+            currentMoves = getAllMoves (board gameState) (currentPlayer gameState)
+        in if null redPieces
+           then gameState { gameOver = True, winner = Just Black }
+           else if null blackPieces
+           then gameState { gameOver = True, winner = Just Red }
+           else if null currentMoves
+           then gameState { gameOver = True, winner = Just (opponent (currentPlayer gameState)) }
+           else gameState
+
+isValidMove :: Board -> Player -> Move -> Bool
+isValidMove board player move =
+    move `elem` getAllMoves board player
+
+executeMove :: Board -> Player -> Move -> Board
+executeMove board player move =
+    case getCaptureMove board player (fst move) (snd move) of
+        Just (_, capturedPos) -> applyCapture board move capturedPos
+        Nothing -> applyMove board move
+
 promotePiece :: Square -> Position -> Square
 promotePiece (Occupied Red Pawn) (0, _) = Occupied Red King
 promotePiece (Occupied Black Pawn) (7, _) = Occupied Black King
