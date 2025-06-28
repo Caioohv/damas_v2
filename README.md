@@ -1,4 +1,4 @@
-# damas_v2
+# Damas, v2.
 Just a checkers game, but in haskell :)
 
 ### Instructions:
