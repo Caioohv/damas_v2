@@ -73,5 +73,16 @@ getPlayerPieces :: Board -> Player -> [Position]
 getPlayerPieces board player = 
     [(r, c) | r <- [0..7], c <- [0..7], isPieceOf player (board !! r !! c)]
 
+pawnDirections :: Player -> [Position]
+pawnDirections Red = [(-1, -1), (-1, 1)]  -- Red moves up
+pawnDirections Black = [(1, -1), (1, 1)]   -- Black moves down
+
+kingDirections :: [Position]
+kingDirections = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
+
+opponent :: Player -> Player
+opponent Red = Black
+opponent Black = Red
+
 main :: IO ()
 main = putStrLn "Checkers game - starting..."
