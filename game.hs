@@ -51,5 +51,27 @@ showBoard board =
   where
     showRow i row = show i ++ " " ++ intercalate " " (map showSquare row)
 
+getSquare :: Board -> Position -> Maybe Square
+getSquare board (row, col)
+    | row >= 0 && row < 8 && col >= 0 && col < 8 = Just (board !! row !! col)
+    | otherwise = Nothing
+
+setSquare :: Board -> Position -> Square -> Board
+setSquare board (row, col) square =
+    take row board ++ 
+    [take col (board !! row) ++ [square] ++ drop (col + 1) (board !! row)] ++
+    drop (row + 1) board
+
+isValidPosition :: Position -> Bool
+isValidPosition (row, col) = row >= 0 && row < 8 && col >= 0 && col < 8
+
+isPieceOf :: Player -> Square -> Bool
+isPieceOf player (Occupied p _) = p == player
+isPieceOf _ Empty = False
+
+getPlayerPieces :: Board -> Player -> [Position]
+getPlayerPieces board player = 
+    [(r, c) | r <- [0..7], c <- [0..7], isPieceOf player (board !! r !! c)]
+
 main :: IO ()
 main = putStrLn "Checkers game - starting..."
