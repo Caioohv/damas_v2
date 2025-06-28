@@ -186,6 +186,49 @@ checkGameOver gameState
            then gameState { gameOver = True, winner = Just (opponent (currentPlayer gameState)) }
            else gameState
 
+evaluateBoard :: Board -> Player -> Int
+evaluateBoard board player =
+    let redPieces = getPlayerPieces board Red
+        blackPieces = getPlayerPieces board Black
+        redScore = sum [pieceValue (board !! r !! c) | (r, c) <- redPieces]
+        blackScore = sum [pieceValue (board !! r !! c) | (r, c) <- blackPieces]
+    in case player of
+        Red -> redScore - blackScore
+        Black -> blackScore - redScore
+  where
+    pieceValue (Occupied _ Pawn) = 1
+    pieceValue (Occupied _ King) = 3
+    pieceValue Empty = 0
+
+minimax :: Board -> Player -> Int -> Bool -> Int
+minimax board player depth maximizing
+    | depth == 0 = evaluateBoard board player
+    | otherwise =
+        let moves = getAllMoves board player
+        in if null moves
+           then if maximizing then -1000 else 1000
+           else 
+               let evaluateMove move = 
+                       let newBoard = executeMove board player move
+                       in minimax newBoard (opponent player) (depth - 1) (not maximizing)
+               in if maximizing
+                  then maximum (map evaluateMove moves)
+                  else minimum (map evaluateMove moves)
+
+getBestMove :: Board -> Player -> Maybe Move
+getBestMove board player =
+    let moves = getAllMoves board player
+    in if null moves
+       then Nothing
+       else 
+           let evaluateMove move = 
+                   let newBoard = executeMove board player move
+                   in minimax newBoard (opponent player) 2 False
+               scores = map evaluateMove moves
+               bestScore = maximum scores
+               bestMoves = [move | (move, score) <- zip moves scores, score == bestScore]
+           in Just (head bestMoves)
+
 isValidMove :: Board -> Player -> Move -> Bool
 isValidMove board player move =
     move `elem` getAllMoves board player
